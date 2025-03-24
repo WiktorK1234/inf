@@ -1,0 +1,134 @@
+h1{
+    color: blue;
+    font-size: 36px;
+    text-align: center;
+    box-shadow: 5px 10px 15px black;
+    font-weight: bold;
+    padding: 20px;
+    border: 2px solid darkblue;
+    border-radius: 5px;
+    background-color: white;
+}
+#id1{
+    color: blue;
+    font-size: 36px;
+    box-shadow: 5px 10px 15px black;
+    font-weight: bold;
+    padding: 20px;
+    border: 2px solid darkblue;
+    border-radius: 5px;
+    background-color: white;
+    display: inline-block;
+}
+body{
+    background-color: lightblue;
+    font-family: Arial, sans-serif;
+}
+span{
+    font-size: 25px;
+    color: black;
+    font-weight: bold;
+    border-width: 8px;
+    border-style: solid;
+    border-color: cyan; 
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #80FFFF;
+    display: inline-block;
+}
+p{
+    font-size: 25px;
+    color: black;
+    font-weight: bold;
+    padding: 20px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: darkblue; 
+    border-radius: 5px;
+    background-color: white;
+    display: inline-block;
+}
+li{
+    list-style-type: none;
+    margin-bottom: 10px;
+}
+.hobby{
+    font-size: 20px;
+    color: black;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-width: 2px;
+    border-style: solid;
+    border-color: cyan;  
+    border-radius: 5px;
+    display: inline-block;
+    line-height: 1.5;
+}
+#imgt{
+    border-width: 15px;
+    border-style: solid;
+    border-color: darkgreen; 
+}
+#imga{
+    width: 400px;
+    height: 500px;
+    border-width: 15px;
+    border-style: solid;
+    border-color: darkred; 
+}
+#imgr{
+    width: 500px;
+    height: 250px;
+    border-width: 15px;
+    border-style: solid;
+    border-color: darkblue; 
+}
+table{
+    border-width: 2px;
+    border-style: solid;
+    border-color: black; 
+    border-radius: 2px;
+    background-color: white;
+}
+th{
+    color: blue;
+    font-size: 20px;;
+    font-weight: bold;
+    padding: 15px;
+}
+td{
+    color: black;
+    font-size: 15px;;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+td:hover {
+    background-color: cyan;
+    box-shadow: 10px 15px 20px black;
+}
+a{
+    font-size: 30px;
+    color: black;
+    font-weight: bold;
+    padding: 20px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: black; 
+    border-radius: 5px;
+    background-color: grey;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+a:hover {
+    background-color: cyan;
+    box-shadow: 10px 15px 20px black;
+}
+@media (max-width: 600px){
+    header{
+        padding: 10px;
+    }
+    body{
+        padding: 10px;
+    }
+}
