@@ -1,16 +1,5 @@
 h1{
-    color: blue;
-    font-size: 36px;
-    text-align: center;
-    box-shadow: 5px 10px 15px black;
-    font-weight: bold;
-    padding: 20px;
-    border: 2px solid darkblue;
-    border-radius: 5px;
-    background-color: white;
-}
-#id1{
-    color: blue;
+    color: blue;s
     font-size: 36px;
     box-shadow: 5px 10px 15px black;
     font-weight: bold;
@@ -20,9 +9,85 @@ h1{
     background-color: white;
     display: inline-block;
 }
+.grid{
+    display: grid;
+    justify-content: center;
+    place-items: center;
+    background: white;
+    padding: 30px;
+    margin: 60px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 400px;
+    box-sizing: border-box;
+}
+.gridac{
+    display: grid;
+    justify-content: center;
+    place-items: center;
+    background: white;
+    padding: 30px;
+    margin: 60px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1500px;
+    min-height: 400px;
+    box-sizing: border-box;
+}
+.naglowek{
+    width: 80%;
+    max-width: 600px;
+    max-height: 400px;
+    padding: 30px;
+    margin-bottom: 60px;
+    background-color: lightcyan;
+    border-radius: 10px;
+    box-shadow: 5px 10px 15px black;
+    text-align: center;
+}
+.przyciski{
+    width: 80%;
+    max-width: 400px;
+    max-height: 600px;
+    padding: 30px;
+    margin-bottom: 60px;
+    background-color: lightskyblue;
+    border-radius: 10px;
+    box-shadow: 5px 10px 15px black;
+    text-align: center;
+}
+.tenis{
+    width: 80%;
+    max-width: 800px;
+    padding: 30px;
+    margin-bottom: 60px;
+    background-color: lightgreen;
+    border-radius: 10px;
+    box-shadow: 5px 10px 15px black;
+    text-align: center;
+}
+.gry{
+    width: 80%;
+    max-width: 1000px;
+    padding: 30px;
+    margin-bottom: 60px;
+    justify-content: center;
+    place-items: center;
+    background-color: lightcoral;
+    border-radius: 10px;
+    box-shadow: 5px 10px 15px black;
+    text-align: center;
+}
 body{
     background-color: lightblue;
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 span{
     font-size: 25px;
@@ -83,6 +148,100 @@ li{
     border-style: solid;
     border-color: darkblue; 
 }
+.photo{
+    position: absolute;
+    width: 150px;
+    transition: all 0.3s ease;
+}
+.photo:hover{
+    transform: scale(1.05);
+}
+.schemat{
+    position: relative;
+    width: 1000px;
+    height: 1200px;
+    margin: 50px auto;
+    border-width: 15px;
+    border-style: solid;
+    border-color: darkred;
+    background-color: lightcoral; 
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.photo{
+    position: absolute;
+    width: 320px;
+    height: 300px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+.imgg{
+    position: absolute;
+    top: 25%;
+    left: 35%;
+    transform: translateY(+25%);
+    z-index: 10;
+}
+#imgg{
+    width: 300px;
+    height: 250px;
+    object-fit: cover;
+}
+.img1{
+    position: absolute;
+    top: 0%; 
+    left: 2%;
+    transform: translateY(+25%);
+}
+#img1{
+    width: 150px;
+    height: 180px;
+}
+#img2{
+    width: 150px;
+    height: 180px;
+}
+.img2{
+    position: absolute;
+    top: 0%; 
+    right: 0%;
+    transform: translateY(+25%);
+}
+#img3{
+    width: 200px;
+    height: 150px;
+}
+.img3{
+    position: absolute;
+    bottom: 20%; 
+    left: 2%;
+    transform: translateY(+25%);
+}
+#img4{
+    width: 200px;
+    height: 160px;
+}
+.img4{
+    position: absolute;
+    bottom: 20%; 
+    right: 0%;
+    transform: translateY(+25%);
+}
+#img5{
+    width: 200px;
+    height: 180px;
+}
+.img5{
+    position: absolute;
+    bottom: 5%;  
+    left: 35%;
+    transform: translateY(+25%);
+}
 table{
     border-width: 2px;
     border-style: solid;
@@ -124,11 +283,72 @@ a:hover {
     background-color: cyan;
     box-shadow: 10px 15px 20px black;
 }
-@media (max-width: 600px){
-    header{
-        padding: 10px;
+@media (max-width: 600px) {
+    h1 {
+        font-size: 24px;
+        padding: 15px;
+        margin: 10px 0;
     }
-    body{
+    
+    .grid, .gridac {
+        margin: 20px;
+        padding: 15px;
+        min-height: 300px;
+    }
+    
+    .naglowek, .przyciski, .tenis, .gry {
+        width: 90%;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    span, p {
+        font-size: 18px;
+        padding: 8px;
+    }
+    
+    .hobby {
+        font-size: 16px;
+    }
+    
+    #imgt, #imga, #imgr {
+        width: 100%;
+        height: auto;
+        border-width: 8px;
+    }
+    
+    .schemat {
+        width: 100%;
+        height: auto;
         padding: 10px;
+        margin: 20px auto;
+    }
+    
+    .imgg, .img1, .img2, .img3, .img4, .img5 {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        transform: none;
+        width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+    
+    table {
+        width: 100%;
+    }
+    
+    th, td {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    a {
+        font-size: 20px;
+        padding: 12px;
+        display: block;
+        margin: 10px 0;
     }
 }
