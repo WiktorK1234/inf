@@ -131,6 +131,7 @@ public:
     int maxHp;
     int obrazenia;
     float pancerz;
+    float penetracjaPancerza;
     float szansaNaUnik;
     int poziom;
 
@@ -180,22 +181,115 @@ public:
     }
 };
 
-vector<Przeciwnik*> losujPrzeciwnikow() {
-    vector<Przeciwnik*> przeciwnicy;
-    int liczba = rand() % 2 + 1; // 1–2 przeciwników
-
-    for (int i = 0; i < liczba; ++i) {
-        int typ = rand() % 2; // 0 lub 1
-        if (typ == 0) {
-            przeciwnicy.push_back(new Przeciwnik("Wilkolak", 60, 12, 2));
-        } else {
-            przeciwnicy.push_back(new Przeciwnik("Szlam", 40, 6, 1));
+class StraznikKorzeni : public Przeciwnik {
+    private:
+        int tura = 0;
+    
+    public:
+        StraznikKorzeni() {
+            nazwa            = "Straznik korzeni";
+            hp               = maxHp = 200;
+            pancerz          = 0.05f;   // 5%
+            obrazenia        = 15;      // bazowe obrazenia młotem
+            penetracjaPancerza = 0.0f;  // brak penetracji
+            szansaNaUnik     = 0.0f;    // 0% unik bierny
+            poziom           = 3;
         }
+    
+        // Nadpisujemy obliczanie obrazen, żeby wprowadzic dwa typy ataku + fotosynteza
+        int obliczObrazenia(int /*unused*/) override {
+            tura++;
+            if (tura % 4 == 0) {
+                int leczenie = static_cast<int>(0.15f * maxHp);
+                hp = min(hp + leczenie, maxHp);
+                cout << nazwa << " uzywa Fotosyntezy i leczy sie o " << leczenie << " HP!\n";
+            }
+            // co 4 tury tylko fotosynteza, ale i tak atakuje dalej:
+            int wybor = rand() % 2;
+            if (wybor == 0) {
+                cout << nazwa << " uzywa Ciosu Mlotem i zadaje 15 obrazen!\n";
+                return 15;
+            } else {
+                cout << nazwa << " uzywa Gwaltownych Korzeni i zadaje 10 obrazen!\n";
+                return 10;
+            }
+        }
+    };
+
+    struct Pokoj {
+        string nazwa;
+        bool odwiedzony = false;
+        bool pokonany = false;
+        vector<Przeciwnik*> przeciwnicy;
+        
+        Pokoj(const string& nazwa) : nazwa(nazwa) {}
+        
+        // Dodaj destruktor do zwalniania pamięci
+        ~Pokoj() {
+            for (auto p : przeciwnicy) {
+                delete p;
+            }
+        }
+    };
+
+    vector<Przeciwnik*> losujPrzeciwnikow() {
+        vector<Przeciwnik*> przeciwnicy;
+        srand(time(0));  // Inicjalizacja generatora liczb losowych
+    
+        // Losowanie liczby szlamów (3-5) i wilkołaków (1-2)
+        int liczbaSzlamow = rand() % 3 + 3;  // 3, 4 lub 5
+        int liczbaWilkolakow = rand() % 2 + 1;  // 1 lub 2
+    
+        // Sprawdzamy, czy któryś typ jest maksymalny
+        bool maksSzlamy = (liczbaSzlamow == 5);
+        bool maksWilkolaki = (liczbaWilkolakow == 2);
+    
+        // Jeśli któryś typ jest maksymalny, dodajemy tylko ten typ
+        if (maksSzlamy || maksWilkolaki) {
+            if (maksSzlamy) {
+                // Tylko szlamy (bo jest ich max)
+                for (int i = 0; i < liczbaSzlamow; ++i) {
+                    przeciwnicy.push_back(new Szlam());
+                }
+            } else {
+                // Tylko wilkołaki (bo jest ich max)
+                for (int i = 0; i < liczbaWilkolakow; ++i) {
+                    przeciwnicy.push_back(new Wilkolak());
+                }
+            }
+        } 
+        else {
+            // Jeśli żaden typ nie jest maksymalny, losujemy czy mają się pojawić razem (50% szans)
+            bool razem = (rand() % 2 == 0);
+    
+            if (razem) {
+                // Dodajemy oba typy
+                for (int i = 0; i < liczbaSzlamow; ++i) {
+                    przeciwnicy.push_back(new Szlam());
+                }
+                for (int i = 0; i < liczbaWilkolakow; ++i) {
+                    przeciwnicy.push_back(new Wilkolak());
+                }
+            } else {
+                // Losujemy tylko jeden typ
+                if (rand() % 2 == 0) {
+                    // Tylko szlamy
+                    for (int i = 0; i < liczbaSzlamow; ++i) {
+                        przeciwnicy.push_back(new Szlam());
+                    }
+                } else {
+                    // Tylko wilkołaki
+                    for (int i = 0; i < liczbaWilkolakow; ++i) {
+                        przeciwnicy.push_back(new Wilkolak());
+                    }
+                }
+            }
+        }
+    
+        return przeciwnicy;
     }
 
-    return przeciwnicy;
-}
-
+// Funkcja wyświetlająca menu wyboru postaci
 Postac wybierzPostac() {
     clearScreen();
     cout << "Wybierz postac:\n";
@@ -227,17 +321,13 @@ Postac wybierzPostac() {
     }
     
     if (wybor == 1) {
-        return Postac();
+        return Opancerzony();  // Zwracamy obiekt klasy Opancerzony
     } else {
-        return Bandyta();
+        return Bandyta();  // Zwracamy obiekt klasy Bandyta
     }
 }
 
 void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
-    int exp = 0;
-    int poziom = 1;
-    int zloto = 0;
-
     while (gracz.hp > 0 && !przeciwnicy.empty()) {
         clearScreen();
         cout << "\n--- Tura gracza (" << gracz.nazwa << ") ---\n";
@@ -326,7 +416,6 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
             continue;
         }
         
-
         if (!akcjaWykonana) continue;
 
         // Sprawdzanie, czy przeciwnik zostal pokonany
@@ -335,26 +424,29 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
                 cout << "Przeciwnik " << przeciwnicy[i]->nazwa << " zostal pokonany!\n";
 
                 int zdobyteExp = 0;
-                if (przeciwnicy[i]->nazwa == "Wilkolak") {
+                if (przeciwnicy[i]->nazwa == "Straznik korzeni") {
+                    zdobyteExp = 250;             // 250 EXP za minibossa
+                } else if (przeciwnicy[i]->nazwa == "Wilkolak") {
                     zdobyteExp = 30;
                 } else if (przeciwnicy[i]->nazwa == "Szlam") {
                     zdobyteExp = 15;
                 }
+                gracz.zdobadzDoswiadczenie(zdobyteExp);
 
-                exp += zdobyteExp;
 
-                // Wzor na zdobyte zloto z przeciwnikow
+                // Wzor na zdobyte złoto
                 int losowyBonus = rand() % 11 + 5; // 5-15%
-                int obrazenia = przeciwnicy[i]->obrazenia;
-                int maxHp = przeciwnicy[i]->maxHp;
-                int poziomPrzeciwnika = przeciwnicy[i]->poziom;
-
-                int bazaZloto = poziomPrzeciwnika * (obrazenia + maxHp / 2);
+                int bazaZloto = przeciwnicy[i]->poziom * (przeciwnicy[i]->obrazenia + przeciwnicy[i]->maxHp / 2);
                 int zdobyteZloto = bazaZloto + (bazaZloto * losowyBonus / 100);
 
-                zloto += zdobyteZloto;
+                // Bonus za minibossa
+                if (przeciwnicy[i]->nazwa == "Strażnik korzeni") {
+                    zdobyteZloto = static_cast<int>(zdobyteZloto * 1.5f);
+                }
 
-                cout << "Zdobyles " << zdobyteExp << " EXP oraz " << zdobyteZloto << " zlota!\n";
+                gracz.zloto += zdobyteZloto;
+                cout << "Zdobyles " << zdobyteExp
+                     << " EXP oraz " << zdobyteZloto << " zlota!\n";
 
                 // Usuwanie przeciwnika
                 delete przeciwnicy[i];
@@ -362,18 +454,18 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
                 --i;
 
                 // Sprawdzenie awansu poziomu
-                int wymaganeExp = poziom * 100;
-                while (exp >= wymaganeExp && poziom < 10) {
-                    exp -= wymaganeExp;
-                    poziom++;
-                    cout << "Awansowales na poziom " << poziom << "!\n";
+                int wymaganeExp = gracz.poziom * 100;
+                while (gracz.exp >= wymaganeExp && gracz.poziom < 10) {
+                    gracz.exp -= wymaganeExp;
+                    gracz.poziom++;
+                    cout << "Awansowales na poziom " << gracz.poziom << "!\n";
 
                     // Skalowanie statystyk gracza
                     gracz.hp += 10;
                     gracz.obrazenia += 2;
 
                     cout << "Zyskales 10 HP, 2 obrazenia i 50 zlota!\n";
-                    wymaganeExp = poziom * 100;
+                    wymaganeExp = gracz.poziom * 100;
                 }
             }
         }
@@ -384,7 +476,6 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
         }
 
         czekajNaKlawisz();
-
         clearScreen();
         cout << "\n--- Tura przeciwnikow ---\n";
         for (size_t i = 0; i < przeciwnicy.size(); ++i) {
@@ -392,9 +483,9 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
             if (gracz.czyUnikBierny()) {
                 cout << gracz.nazwa << " udalo sie uniknac ataku przeciwnika " << przeciwnik->nazwa << "!\n";
             } else {
-                int obrazeniaPrzeciwnika = przeciwnik->obliczObrazenia(przeciwnik->obrazenia);
-                gracz.hp -= obrazeniaPrzeciwnika;
-                cout << przeciwnik->nazwa << " zadal " << obrazeniaPrzeciwnika << " obrazen graczowi!\n";
+                int obrażeniaPrzeciwnika = przeciwnik->obliczObrazenia(przeciwnik->obrazenia);
+                gracz.hp -= obrażeniaPrzeciwnika;
+                cout << przeciwnik->nazwa << " zadal " << obrażeniaPrzeciwnika << " obrazen graczowi!\n";
             }
         }
 
@@ -414,20 +505,19 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
     }
 
     // === PODSUMOWANIE PO WALCE ===
-    if (gracz.hp > 0 && przeciwnicy.empty()) {
-        cout << "\n--- Podsumowanie walki ---\n";
-        cout << "Poziom postaci: " << poziom << "\n";
-        cout << "Doswiadczenie: " << exp << "/" << (poziom * 100) << "\n";
-        cout << "HP: " << gracz.hp << "\n";
-        cout << "Obrazenia: " << gracz.obrazenia << "\n";
-        cout << "Zloto: " << zloto << "\n";
-    }
+    cout << "\n--- Podsumowanie walki ---\n";
+    cout << "Poziom postaci: "       << gracz.poziom << "\n";
+    cout << "Doswiadczenie: "        << gracz.exp << "/" << (gracz.poziom*100) << "\n";
+    cout << "HP: "                   << gracz.hp << "/" << gracz.maxHp << "\n";
+    cout << "Obrazenia: "            << gracz.obrazenia << "\n";
+    cout << "Zloto: "                << gracz.zloto << "\n";
+    cout << "Mikstury: "             << gracz.mikstury << "\n";
 
     czekajNaKlawisz();
     clearScreen();
 }
 
-struct Pokoj {
+struct Pokoje {
     string nazwa;
     bool odwiedzony = false;
     bool pokonany = false;
@@ -456,83 +546,158 @@ vector<Przeciwnik*> losujPrzeciwnikowDoPokoju() {
     return przeciwnicy;
 }
 
-int main() {
-    srand(static_cast<unsigned int>(time(0)));
+void rozpocznijGre() {
+    srand(time(nullptr));
 
-    vector<Przeciwnik*> przeciwnicy = losujPrzeciwnikow(); // do ogólnej walki na koniec
     Postac gracz = wybierzPostac();
 
-    // Stałe pokoje
-    Pokoj startowy = {"Startowy"};
-    Pokoj pokojLewo = {"Pokoj Lewo"};
-    Pokoj pokojPrawo = {"Pokoj Prawo"};
-    Pokoj pokojPrzod = {"Pokoj Przod"};
+    // Inicjalizacja pokoi
+    Pokoj startowy("Start");
+    Pokoj lewy("Lewy");
+    Pokoj prawy("Prawy");
+    Pokoj przod("Przod");
 
-    // Główna pętla eksploracji
-    Pokoj* aktualnyPokoj = &startowy;
-    bool eksploracjaTrwa = true;
+    // Ustawienie przeciwników w pokojach
+    lewy.przeciwnicy = losujPrzeciwnikow();
+    prawy.przeciwnicy = losujPrzeciwnikow();
+    przod.przeciwnicy.push_back(new StraznikKorzeni());
 
-    while (eksploracjaTrwa) {
+    vector<Pokoj*> wszystkiePokoje = {&startowy, &lewy, &prawy, &przod};
+    Pokoj* obecny = &startowy;
+    bool pokonanyMiniboss = false;
+
+    while (gracz.hp > 0) {
         clearScreen();
-        cout << "--- Znajdujesz sie w: " << aktualnyPokoj->nazwa << " ---\n";
-    
-        if (!aktualnyPokoj->pokonany && aktualnyPokoj != &startowy) {
-            if (!aktualnyPokoj->odwiedzony) {
-                aktualnyPokoj->przeciwnicy = losujPrzeciwnikowDoPokoju();
-                aktualnyPokoj->odwiedzony = true;
+        cout << "\n== Obecny pokoj: " << obecny->nazwa << " ==" << endl;
+        
+        if (obecny->nazwa == "Start") {
+            cout << "\nDostepne opcje:" << endl;
+            cout << "1. Idz w lewo" << endl;
+            cout << "2. Idz w prawo" << endl;
+            
+            // Pokój z przodu dostępny tylko jeśli pokonano oba boczne pokoje
+            if (lewy.pokonany && prawy.pokonany) {
+                cout << "3. Idz do przodu (do Straznika Korzeni)" << endl;
+            } else {
+                cout << "3. <Drzwi do przodu sa zamkniete, musisz najpierw oczycic boczne pokoje>" << endl;
             }
-            walka(gracz, aktualnyPokoj->przeciwnicy);
-            if (gracz.hp <= 0) break;
-            if (aktualnyPokoj->przeciwnicy.empty()) {
-                aktualnyPokoj->pokonany = true;
-                cout << "Pokoj oczyszczony z przeciwnikow!\n";
-                czekajNaKlawisz();
-                clearScreen();
-            }
-        }
-    
-        clearScreen();  // Dodajemy clearScreen() tuż przed pytaniem o kolejny wybór
-    
-        cout << "\nGdzie chcesz isc?\n";
-        if (aktualnyPokoj == &startowy) {
-            cout << "1. Idz w lewo\n";
-            cout << "2. Idz w prawo\n";
-            cout << "3. Idz do przodu\n";
-            cout << "4. Sprawdz statystyki\n";
-            cout << "5. Uzyj mikstury\n";
+            
+            cout << "4. Sprawdz swoje statystyki" << endl;
+            cout << "5. Uzyj mikstury (pozostalo: " << gracz.mikstury << ")" << endl;
+            cout << "6. Zakoncz gre" << endl;
             cout << "Wybor: ";
+
             int wybor;
-            cin >> wybor;
-    
-            switch (wybor) {
-                case 1: aktualnyPokoj = &pokojLewo; break;
-                case 2: aktualnyPokoj = &pokojPrawo; break;
-                case 3: aktualnyPokoj = &pokojPrzod; break;
-                case 4: gracz.wyswietlStatystyki(); czekajNaKlawisz(); break;
-                case 5: gracz.uzyjMikstury(); czekajNaKlawisz(); break;
-                default: cout << "Nieprawidlowy wybor.\n"; czekajNaKlawisz(); clearScreen(); break;
+            while (!(cin >> wybor)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Nieprawidlowy wybor. Wprowadz liczbe 1-6: ";
+            }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if (wybor == 1) {
+                obecny = &lewy;
+            } else if (wybor == 2) {
+                obecny = &prawy;
+            } else if (wybor == 3 && lewy.pokonany && prawy.pokonany) {
+                obecny = &przod;
+            } else if (wybor == 4) {
+                clearScreen();
+                gracz.wyswietlStatystyki();
+                czekajNaKlawisz();
+                continue;
+            } else if (wybor == 5) {
+                gracz.uzyjMikstury();
+                czekajNaKlawisz();
+                continue;
+            } else if (wybor == 6) {
+                cout << "Dzieki za gre!" << endl;
+                break;
+            } else {
+                cout << "Nieprawidlowy wybor lub drzwi sa zamkniete!" << endl;
+                czekajNaKlawisz();
+                continue;
             }
         } else {
-            cout << "1. Wroc do pokoju startowego\n";
-            cout << "Wybor: ";
-            int wybor;
-            cin >> wybor;
-            if (wybor == 1) {
-                aktualnyPokoj = &startowy;
-            } else {
-                cout << "Nieprawidlowy wybor.\n";
+            if (!obecny->pokonany && !obecny->przeciwnicy.empty()) {
+                cout << "W pokoju znajduje sie przeciwnik!" << endl;
                 czekajNaKlawisz();
+                
+                walka(gracz, obecny->przeciwnicy);
+                
+                if (gracz.hp <= 0) {
+                    cout << "Koniec gry! Twoja postac zgineła..." << endl;
+                    break;
+                }
+
+                if (obecny->przeciwnicy.empty()) {
+                    obecny->pokonany = true;
+                    
+                    // Specjalna nagroda za Strażnika Korzeni
+                    if (obecny->nazwa == "Przod" && !pokonanyMiniboss) {
+                        pokonanyMiniboss = true;
+                        
+                        // Usunięto zdobywanie EXP tutaj, bo już jest w funkcji walka()
+                        // Dodajemy tylko złoto
+                        int losowyBonus = rand() % 11 + 5; // 5-15%
+                        int bazaZloto = 200; // Bazowa wartość dla minibossa
+                        int zdobyteZloto = bazaZloto + (bazaZloto * losowyBonus / 100);
+                        
+                        gracz.zloto += zdobyteZloto;
+                        clearScreen();
+                        cout << "Gratulacje! Pokonales Straznika Korzeni!\n";
+                        cout << "Otrzymales " << zdobyteZloto << " zlota!\n";
+                        czekajNaKlawisz();
+                    }
+                }
+            } else {
+                cout << "Pokoj jest pusty." << endl;
+            }
+
+            cout << "\nDostepne opcje:" << endl;
+            cout << "1. Wroc do pokoju startowego" << endl;
+            cout << "2. Sprawdz swoje statystyki" << endl;
+            cout << "3. Uzyj mikstury (pozostalo: " << gracz.mikstury << ")" << endl;
+            cout << "Wybor: ";
+
+            int wybor;
+            while (!(cin >> wybor)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Nieprawidlowy wybor. Wprowadz liczbe 1-3: ";
+            }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if (wybor == 1) {
+                obecny = &startowy;
+            } else if (wybor == 2) {
                 clearScreen();
+                gracz.wyswietlStatystyki();
+                czekajNaKlawisz();
+                continue;
+            } else if (wybor == 3) {
+                gracz.uzyjMikstury();
+                czekajNaKlawisz();
+                continue;
+            } else {
+                cout << "Nieprawidlowy wybor!" << endl;
+                czekajNaKlawisz();
+                continue;
             }
         }
-    }    
+    }
 
-    if (gracz.hp <= 0)
-        cout << "\nKoniec walki, przeciwnicy zostali pokonani" << endl;
+    // Zwolnienie pamięci
+    for (auto pokoj : wszystkiePokoje) {
+        for (auto p : pokoj->przeciwnicy) {
+            delete p;
+        }
+        pokoj->przeciwnicy.clear();
+    }
+}
 
-    // Czyszczenie pamięci
-    for (size_t i = 0; i < przeciwnicy.size(); ++i)
-        delete przeciwnicy[i];
-
+int main() {
+    srand(time(nullptr)); // Inicjalizacja generatora liczb losowych
+    rozpocznijGre();
     return 0;
 }
