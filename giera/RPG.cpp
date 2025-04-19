@@ -24,6 +24,7 @@ class Postac {
 public:
     string nazwa;
     int hp;
+    int maxHp;
     float pancerz;
     int obrazenia;
     float penetracjaPancerza;
@@ -33,6 +34,18 @@ public:
     int poziom = 1;
     int exp = 0;
     int zloto=0;
+    int mikstury=5;
+
+    void uzyjMikstury() {
+        if (mikstury > 0) {
+            int ileLeczenia = maxHp * 0.2;
+            hp = min(hp + ileLeczenia, maxHp);
+            mikstury--;
+            cout << "Uzyles mikstury. Odzyskales " << ileLeczenia << " HP. Pozostalo mikstur: " << mikstury << "\n";
+        } else {
+            cout << "Nie masz mikstur!\n";
+        }
+    }
 
     Postac() = default;
 
@@ -45,8 +58,11 @@ public:
         cout << "Szansa na unik bierny: " << szansaNaUnikBierny * 100 << "%\n";
         cout << "Unik manualny: " << unikManualny * 100 << "%\n";
         cout << "Szansa na ucieczke: " << szansaNaUcieczke * 100 << "%\n";
+        cout << "Poziom: " << poziom << "\n";
         cout << "Doswiadczenie: " << exp << " / " << poziom * 100 << "\n";
-         cout << "Zloto: " << zloto << "\n";
+        cout << "Zloto: " << zloto << "\n";
+        cout << "Mikstury: " << mikstury << "\n";
+        cout << "------------------\n";
     }
     
     void zdobadzDoswiadczenie(int ilosc) {
@@ -83,6 +99,7 @@ public:
     Opancerzony() {
         nazwa = "Opancerzony";
         hp = 140;
+        maxHp=140;
         pancerz = 0.08f;
         obrazenia = 10;
         penetracjaPancerza = 0.08f;
@@ -97,6 +114,7 @@ public:
     Bandyta() {
         nazwa = "Bandyta";
         hp = 85;
+        maxHp=85;
         pancerz = 0.0f;
         obrazenia = 14;
         penetracjaPancerza = 0.15f;
@@ -110,7 +128,7 @@ class Przeciwnik {
 public:
     string nazwa;
     int hp;
-    int maxHp; // <-- dodaj to, jeúli nie istnieje
+    int maxHp;
     int obrazenia;
     float pancerz;
     float szansaNaUnik;
@@ -162,26 +180,20 @@ public:
     }
 };
 
-vector<Przeciwnik*> losujGrupePrzeciwnikow() {
-    vector<Przeciwnik*> grupa;
-    int liczbaPrzeciwnikow;
-    
-    // Losowanie typu przeciwnika
-    int typPrzeciwnika = rand() % 2;
-    
-    if (typPrzeciwnika == 0) { // Szlamy
-        liczbaPrzeciwnikow = 3 + rand() % 3; // 3-5 szlamÛw
-        for (int i = 0; i < liczbaPrzeciwnikow; i++) {
-            grupa.push_back(new Szlam());
-        }
-    } else { // Wilko≥aki
-        liczbaPrzeciwnikow = 1 + rand() % 2; // 1-2 wilko≥aki
-        for (int i = 0; i < liczbaPrzeciwnikow; i++) {
-            grupa.push_back(new Wilkolak());
+vector<Przeciwnik*> losujPrzeciwnikow() {
+    vector<Przeciwnik*> przeciwnicy;
+    int liczba = rand() % 2 + 1; // 1‚Äì2 przeciwnik√≥w
+
+    for (int i = 0; i < liczba; ++i) {
+        int typ = rand() % 2; // 0 lub 1
+        if (typ == 0) {
+            przeciwnicy.push_back(new Przeciwnik("Wilkolak", 60, 12, 2));
+        } else {
+            przeciwnicy.push_back(new Przeciwnik("Szlam", 40, 6, 1));
         }
     }
-    
-    return grupa;
+
+    return przeciwnicy;
 }
 
 Postac wybierzPostac() {
@@ -235,6 +247,7 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
         cout << "3. Sprobuj uciec\n";
         cout << "4. Sprawdz statystyki wszystkich postaci\n";
         cout << "5. Sprawdz statystyki wszystkich przeciwnikow\n";
+        cout << "6. Uzyj mikstury (pozostalo: " << gracz.mikstury << ")\n";
         cout << "Wybor: ";
         int wybor;
         cin >> wybor;
@@ -286,6 +299,7 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
             clearScreen();
             gracz.wyswietlStatystyki();
             czekajNaKlawisz();
+            clearScreen();
             continue;
         } else if (wybor == 5) {
             clearScreen();
@@ -294,12 +308,24 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
                 cout << endl;
             }
             czekajNaKlawisz();
+            clearScreen();
             continue;
+        } else if (wybor == 6) {
+            if (gracz.mikstury > 0) {
+                int ileLeczenia = gracz.maxHp * 0.2;
+                gracz.hp = min(gracz.hp + ileLeczenia, gracz.maxHp);
+                gracz.mikstury--;
+                cout << gracz.nazwa << " uzywa mikstury! Odzyskuje " << ileLeczenia << " HP.\n";
+                cout << "Pozostale mikstury: " << gracz.mikstury << "\n";
+                akcjaWykonana = true;
+            }
         } else {
-            cout << "Nieprawidlowy wybor! Sprobuj ponownie.\n";
+            cout << "Nie masz mikstur!\n";
             czekajNaKlawisz();
+            clearScreen();
             continue;
         }
+        
 
         if (!akcjaWykonana) continue;
 
@@ -317,8 +343,8 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
 
                 exp += zdobyteExp;
 
-                // Z≥oto ñ sensowny wzÛr
-                int losowyBonus = rand() % 11 + 5; // 5ñ15%
+                // Wzor na zdobyte zloto z przeciwnikow
+                int losowyBonus = rand() % 11 + 5; // 5-15%
                 int obrazenia = przeciwnicy[i]->obrazenia;
                 int maxHp = przeciwnicy[i]->maxHp;
                 int poziomPrzeciwnika = przeciwnicy[i]->poziom;
@@ -360,7 +386,7 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
         czekajNaKlawisz();
 
         clearScreen();
-        cout << "\n--- Tura przeciwnikÛw ---\n";
+        cout << "\n--- Tura przeciwnikow ---\n";
         for (size_t i = 0; i < przeciwnicy.size(); ++i) {
             Przeciwnik* przeciwnik = przeciwnicy[i];
             if (gracz.czyUnikBierny()) {
@@ -384,6 +410,7 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
         }
 
         czekajNaKlawisz();
+        clearScreen();
     }
 
     // === PODSUMOWANIE PO WALCE ===
@@ -395,24 +422,117 @@ void walka(Postac &gracz, vector<Przeciwnik*> &przeciwnicy) {
         cout << "Obrazenia: " << gracz.obrazenia << "\n";
         cout << "Zloto: " << zloto << "\n";
     }
+
+    czekajNaKlawisz();
+    clearScreen();
 }
 
+struct Pokoj {
+    string nazwa;
+    bool odwiedzony = false;
+    bool pokonany = false;
+    vector<Przeciwnik*> przeciwnicy;
+};
 
+// Funkcja do losowania jednego przeciwnika
+vector<Przeciwnik*> losujPrzeciwnikowDoPokoju() {
+    vector<Przeciwnik*> przeciwnicy;
+
+    int typ = rand() % 2; // 0 = Szlam, 1 = Wilko≈Çak
+    int ile = 0;
+
+    if (typ == 0) {
+        ile = 3 + rand() % 3; // 3‚Äì5 Szlam√≥w
+        for (int i = 0; i < ile; ++i) {
+            przeciwnicy.push_back(new Przeciwnik{"Szlam", 30, 5, 1});
+        }
+    } else {
+        ile = 1 + rand() % 2; // 1‚Äì2 Wilko≈Çaki
+        for (int i = 0; i < ile; ++i) {
+            przeciwnicy.push_back(new Przeciwnik{"Wilkolak", 50, 10, 2});
+        }
+    }
+
+    return przeciwnicy;
+}
 
 int main() {
     srand(static_cast<unsigned int>(time(0)));
 
-    vector<Przeciwnik*> przeciwnicy = losujGrupePrzeciwnikow();
+    vector<Przeciwnik*> przeciwnicy = losujPrzeciwnikow(); // do og√≥lnej walki na koniec
     Postac gracz = wybierzPostac();
-    walka(gracz, przeciwnicy);
+
+    // Sta≈Çe pokoje
+    Pokoj startowy = {"Startowy"};
+    Pokoj pokojLewo = {"Pokoj Lewo"};
+    Pokoj pokojPrawo = {"Pokoj Prawo"};
+    Pokoj pokojPrzod = {"Pokoj Przod"};
+
+    // G≈Ç√≥wna pƒôtla eksploracji
+    Pokoj* aktualnyPokoj = &startowy;
+    bool eksploracjaTrwa = true;
+
+    while (eksploracjaTrwa) {
+        clearScreen();
+        cout << "--- Znajdujesz sie w: " << aktualnyPokoj->nazwa << " ---\n";
+    
+        if (!aktualnyPokoj->pokonany && aktualnyPokoj != &startowy) {
+            if (!aktualnyPokoj->odwiedzony) {
+                aktualnyPokoj->przeciwnicy = losujPrzeciwnikowDoPokoju();
+                aktualnyPokoj->odwiedzony = true;
+            }
+            walka(gracz, aktualnyPokoj->przeciwnicy);
+            if (gracz.hp <= 0) break;
+            if (aktualnyPokoj->przeciwnicy.empty()) {
+                aktualnyPokoj->pokonany = true;
+                cout << "Pokoj oczyszczony z przeciwnikow!\n";
+                czekajNaKlawisz();
+                clearScreen();
+            }
+        }
+    
+        clearScreen();  // Dodajemy clearScreen() tu≈º przed pytaniem o kolejny wyb√≥r
+    
+        cout << "\nGdzie chcesz isc?\n";
+        if (aktualnyPokoj == &startowy) {
+            cout << "1. Idz w lewo\n";
+            cout << "2. Idz w prawo\n";
+            cout << "3. Idz do przodu\n";
+            cout << "4. Sprawdz statystyki\n";
+            cout << "5. Uzyj mikstury\n";
+            cout << "Wybor: ";
+            int wybor;
+            cin >> wybor;
+    
+            switch (wybor) {
+                case 1: aktualnyPokoj = &pokojLewo; break;
+                case 2: aktualnyPokoj = &pokojPrawo; break;
+                case 3: aktualnyPokoj = &pokojPrzod; break;
+                case 4: gracz.wyswietlStatystyki(); czekajNaKlawisz(); break;
+                case 5: gracz.uzyjMikstury(); czekajNaKlawisz(); break;
+                default: cout << "Nieprawidlowy wybor.\n"; czekajNaKlawisz(); clearScreen(); break;
+            }
+        } else {
+            cout << "1. Wroc do pokoju startowego\n";
+            cout << "Wybor: ";
+            int wybor;
+            cin >> wybor;
+            if (wybor == 1) {
+                aktualnyPokoj = &startowy;
+            } else {
+                cout << "Nieprawidlowy wybor.\n";
+                czekajNaKlawisz();
+                clearScreen();
+            }
+        }
+    }    
 
     if (gracz.hp <= 0)
-        cout << "\nKoniec gry ñ postaÊ zosta≥a pokonana!" << endl;
+        cout << "\nKoniec walki, przeciwnicy zostali pokonani" << endl;
 
-    // Czyszczenie pamiÍci (jeúli nie uøywasz smart pointerÛw)
+    // Czyszczenie pamiƒôci
     for (size_t i = 0; i < przeciwnicy.size(); ++i)
         delete przeciwnicy[i];
 
     return 0;
 }
-
