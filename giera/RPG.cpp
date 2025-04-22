@@ -87,7 +87,6 @@ class Przeciwnik {
     
     public:
     void skalujDoPoziomu(int poziomGracza) {
-        cout << "Skalowanie " << nazwa << " z poziomu " << poziom << " do poziomu gracza " << poziomGracza << endl;
         resetujBazoweStatystyki();
         resetujSpecjalneStatystyki();
         
@@ -99,14 +98,14 @@ class Przeciwnik {
         }
         // Przeciwnik niższy poziomem - zwiększ statystyki
         else if (roznica < 0) {
-            float mnoznik = pow(1.07f, abs(roznica));
+            float mnoznik = pow(1.1f, abs(roznica));
             maxHp = static_cast<int>(maxHp * mnoznik);
             obrazenia = static_cast<int>(obrazenia * mnoznik);
             pancerz = clamp(pancerz * (mnoznik * 0.8f), 0.0f, 0.8f);
         }
         // Przeciwnik wyższy poziomem - zmniejsz statystyki
         else if (roznica > 0) {
-            float mnoznik = pow(1.07f, roznica);
+            float mnoznik = pow(1.25f, roznica);
             maxHp = max(1, static_cast<int>(maxHp / mnoznik));
             obrazenia = max(1, static_cast<int>(obrazenia / mnoznik));
             pancerz = clamp(pancerz / (mnoznik * 0.8f), 0.0f, 0.8f);
