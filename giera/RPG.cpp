@@ -16,6 +16,8 @@ RPG/
 │   └── RPG.cpp
 */
 
+//msys64!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #include "Postac.h"
 #include "Przeciwnik.h"
 #include "EfektyStatusowe.h"
