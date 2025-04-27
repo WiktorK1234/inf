@@ -103,42 +103,85 @@ class kalkulator {
   }
 }
 
-const input = promptSync("Wprowadź równanie: ") || "";
-const liczby = input.split(/[+\-*/]/).map(Number);
-const operator = input.split(/\d+/).filter(Boolean);
+function obliczZawartoscNawiasow(rownanie: string): string {
+  while (rownanie.includes("(")) {
+    const start = rownanie.lastIndexOf("(");
+    const end = rownanie.indexOf(")", start);
 
-const operatory: Record<string, string> = {
-  "+": "dodawanie",
-  "-": "odejmowanie",
-  "*": "mnozenie",
-  "/": "dzielenie",
-};
+    if (end === -1) {
+      console.log("Brak zamykającego nawiasu!");
+      process.exit(1);
+    }
 
-if (liczby.length < 2 || operator.length < 1) {
-  console.log("Nieprawidłowy format równania!");
-  process.exit(1);
+    const wewnatrzNawiasow = rownanie.slice(start + 1, end);
+    const wynikWewnatrz = przetworzRownanie(wewnatrzNawiasow);
+
+    rownanie =
+      rownanie.slice(0, start) + wynikWewnatrz + rownanie.slice(end + 1);
+  }
+  return rownanie;
 }
 
-const nr1 = liczby[0];
-const nr2 = liczby[1];
-const nr3 = liczby[2];
-const nr4 = liczby[3];
-const nr5 = liczby[4];
-const dzialanie1 = operatory[operator[0]] || "dodawanie";
-const dzialanie2 = operatory[operator[1]] || "dodawanie";
-const dzialanie3 = operatory[operator[2]] || "dodawanie";
-const dzialanie4 = operatory[operator[3]] || "dodawanie";
+function znajdzLiczbyIOperatory(rownanie: string): {
+  liczby: number[];
+  operatory: string[];
+} {
+  const liczby: number[] = [];
+  const operatory: string[] = [];
+  let aktualnaLiczba = "";
 
-const rownanieUzytkownika = new kalkulator(
-  liczby[0] || 0,
-  liczby[1] || 0,
-  liczby[2] || 0,
-  liczby[3] || 0,
-  liczby[4] || 0,
-  operatory[operator[0]] || "dodawanie",
-  operatory[operator[1]] || "dodawanie",
-  operatory[operator[2]] || "dodawanie",
-  operatory[operator[3]] || "dodawanie"
-);
+  for (let i = 0; i < rownanie.length; i++) {
+    const znak = rownanie[i];
 
-console.log("Wynik:", rownanieUzytkownika.oblicz());
+    if (/\d|\./.test(znak)) {
+      aktualnaLiczba += znak;
+    } else if (["+", "-", "*", "/"].includes(znak)) {
+      if (aktualnaLiczba !== "") {
+        liczby.push(parseFloat(aktualnaLiczba));
+        aktualnaLiczba = "";
+      }
+      operatory.push(znak);
+    }
+  }
+
+  if (aktualnaLiczba !== "") {
+    liczby.push(parseFloat(aktualnaLiczba));
+  }
+
+  return { liczby, operatory };
+}
+
+function przetworzRownanie(rownanie: string): string {
+  rownanie = obliczZawartoscNawiasow(rownanie);
+
+  const { liczby, operatory } = znajdzLiczbyIOperatory(rownanie);
+
+  const operatoryMap: Record<string, string> = {
+    "+": "dodawanie",
+    "-": "odejmowanie",
+    "*": "mnozenie",
+    "/": "dzielenie",
+  };
+
+  if (liczby.length < 2 || operatory.length < 1) {
+    return rownanie;
+  }
+
+  const rownanieUzytkownika = new kalkulator(
+    liczby[0] || 0,
+    liczby[1] || 0,
+    liczby[2] || 0,
+    liczby[3] || 0,
+    liczby[4] || 0,
+    operatoryMap[operatory[0]] || "dodawanie",
+    operatoryMap[operatory[1]] || "dodawanie",
+    operatoryMap[operatory[2]] || "dodawanie",
+    operatoryMap[operatory[3]] || "dodawanie"
+  );
+
+  return rownanieUzytkownika.oblicz().toString();
+}
+
+const input = promptSync("Wprowadź równanie: ") || "";
+const wynik = przetworzRownanie(input.replace(/\s/g, ""));
+console.log("Wynik:", wynik);
