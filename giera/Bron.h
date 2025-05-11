@@ -32,7 +32,13 @@ private:
     EfektStatusu efekt;
 
 public:
-    Bron(string n, int bonus, float szansa = 0.0f, EfektStatusu ef = EfektStatusu::BRAK);
+Bron(string n, int bonus, float szansa = 0.0f, EfektStatusu ef = EfektStatusu::BRAK)
+: nazwa(move(n)), bonusObrazen(max(bonus, 0)), 
+  szansaNaEfekt(clamp(szansa, 0.0f, 1.0f)), efekt(ef) {
+if (szansaNaEfekt > 0.0f && efekt == EfektStatusu::BRAK) {
+    throw invalid_argument("Bron z szansa na efekt musi miec okreslony efekt!");
+}
+}
     
     string pobierzNazwe() const { return nazwa; }
     int pobierzBonusObrazen() const { return bonusObrazen; }

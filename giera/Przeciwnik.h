@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <memory>
 #include "Postac.h"
 #include "EfektyStatusowe.cpp"
 

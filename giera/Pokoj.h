@@ -25,7 +25,7 @@ public:
 
     // Zarządzanie przeciwnikami
     void dodajPrzeciwnika(unique_ptr<Przeciwnik> przeciwnik);
-    const vector<unique_ptr<Przeciwnik>>& pobierzPrzeciwnikow() const { return przeciwnicy; }
+    const vector<unique_ptr<Przeciwnik>>& pobierzPrzeciwnikow() const;
 
     // Zarządzanie połączeniami
     void dodajPolaczenie(const string& kierunek, Pokoj* cel);
@@ -38,9 +38,30 @@ public:
     bool czyPokonany() const { return pokonany; }
     void ustawPokonany(bool wartosc) { pokonany = wartosc; }
 
+    void wyczyscPrzeciwnikow();
+    bool czySaPrzeciwnicy() const;
+    size_t liczbaZywychPrzeciwnikow() const;
+    string serializuj() const;
+    void deserializuj(const vector<string>& dane);
+    int znajdzTypPrzeciwnika(const string& nazwa) const;
+
     // Wyłącz kopiowanie i przypisanie
     Pokoj(const Pokoj&) = delete;
     Pokoj& operator=(const Pokoj&) = delete;
+
+    void ustawSpecjalnaAkcje(function<bool(Postac&)> akcja) {
+        specjalnaAkcja = move(akcja);
+    }
+
+    void wyczyscPrzeciwnikow() {
+        przeciwnicy.clear();
+    }
+
+    vector<unique_ptr<Przeciwnik>>& pobierzPrzeciwnikow() { return przeciwnicy; }
+    const vector<unique_ptr<Przeciwnik>>& pobierzPrzeciwnikow() const { return przeciwnicy; }
+    
+    function<bool(Postac&)>& pobierzSpecjalnaAkcje() { return specjalnaAkcja; }
+    bool maSpecjalnaAkcje() const { return static_cast<bool>(specjalnaAkcja); }
 };
 
 #endif // POKOJ_H

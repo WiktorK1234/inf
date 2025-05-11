@@ -8,10 +8,6 @@
 
 using namespace std;
 
-Postac::~Postac() {
-    delete aktualnaBron;
-}
-
 Postac::Postac(const Postac& other) {
     // Kopiowanie wszystkich pól
     nazwa = other.nazwa;
@@ -133,19 +129,19 @@ void Postac::aktualizujEfektyStatusowe() {
     }
 }
 
-void Postac::aktualizujPoziomPrzeciwnikow(vector<Pokoj*>& wszystkiePokoje, int poziomGracza) {
-    for (auto pokoj : wszystkiePokoje) {
-        if (!pokoj) continue;
-        
-        for (auto& przeciwnik : pokoj->pobierzPrzeciwnikow()) {
-            if (przeciwnik) {
-                przeciwnik->skalujDoPoziomu(poziomGracza);
+void Postac::aktualizujPoziomPrzeciwnikow(const vector<unique_ptr<Pokoj>>& wszystkiePokoje, int poziomGracza) {
+    for (auto& pokoj : wszystkiePokoje) {
+        if (pokoj) {
+            for (auto& przeciwnik : pokoj->pobierzPrzeciwnikow()) {
+                if (przeciwnik) {
+                    przeciwnik->skalujDoPoziomu(poziomGracza);
+                }
             }
         }
     }
 }
 
-void Postac::zdobadzDoswiadczenie(int ilosc, vector<Pokoj*>& wszystkiePokoje) {
+void Postac::zdobadzDoswiadczenie(int ilosc, const vector<unique_ptr<Pokoj>>& wszystkiePokoje) {
     int staryPoziom = poziom;
     exp += ilosc;
     
@@ -402,10 +398,9 @@ vector<Bron> Postac::dostepneBronie = {
     Bron("zatrute sztylety", 8, 0.35f, EfektStatusu::ZATRUCIE)
 };
 
-Opancerzony::Opancerzony(Bron* bron) {
+Opancerzony::Opancerzony(Bron* bron) : Postac() {
     nazwa = "Opancerzony";
-    hp = 140;
-    maxHp = 140;
+    maxHp = hp = 140;
     pancerz = 0.08f;
     obrazenia = 10;
     penetracjaPancerza = 0.08f;
@@ -415,10 +410,9 @@ Opancerzony::Opancerzony(Bron* bron) {
     aktualnaBron = &dostepneBronie[0];  // Przypisanie broni z tablicy statycznej
 }
 
-Bandyta::Bandyta(Bron* bron) {
+Bandyta::Bandyta(Bron* bron) : Postac() {
     nazwa = "Bandyta";
-    hp = 85;
-    maxHp = 85;
+    maxHp = hp = 85;
     pancerz = 0.0f;
     obrazenia = 14;
     penetracjaPancerza = 0.15f;

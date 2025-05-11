@@ -41,12 +41,15 @@ public:
         poziom(1), exp(0), zloto(0), mikstury(5), 
         aktualnaBron(nullptr), powalony(false), pozostaleTuryPowalenia(0) 
     {}
-    virtual ~Postac();
+    virtual ~Postac() = default;
+    virtual string pobierzNazwe() const = 0;
+    virtual void dodajEfektStatusu(const string& efekt, int tury) = 0;
     Postac(const Postac& other);
     Postac& operator=(const Postac& other);
+
+    const unordered_map<string, int>& pobierzEfektyStatusowe() const { return efektyStatusow; }
     
     void dodajEfektStatusu(const string& efekt, int tury);
-    const string& pobierzNazwe() const { return nazwa; }
     int pobierzZloto() const { return zloto; }
     void ustawZloto(int noweZloto) { zloto = noweZloto; }
     void otrzymajObrazenia(int ile);
@@ -55,8 +58,8 @@ public:
     void ustawPowalenie(int tury = 1);
     void aktualizujPowalenie();
     void aktualizujEfektyStatusowe();
-    void aktualizujPoziomPrzeciwnikow(vector<Pokoj*>& wszystkiePokoje, int poziomGracza);
-    void zdobadzDoswiadczenie(int ilosc, vector<Pokoj*>& wszystkiePokoje);
+    void aktualizujPoziomPrzeciwnikow(const vector<unique_ptr<Pokoj>>& wszystkiePokoje, int poziomGracza);
+    void zdobadzDoswiadczenie(int ilosc, const vector<unique_ptr<Pokoj>>& wszystkiePokoje);
     void uzyjMikstury();
     void wyswietlStatystyki(bool czyscEkran = true);
     
@@ -65,8 +68,16 @@ public:
     bool czyUcieczka();
     int obliczObrazenia(int obrazeniaAtakujacego);
     int obliczCalkowiteObrazenia();
+    int& pobierzHp() { return hp; }
+    int pobierzMaxHp() const { return maxHp; }
+    void ustawHp(int noweHp) { hp = noweHp; }
+    int pobierzPoziom() const { return poziom; }
 
     virtual ~Postac() { delete aktualnaBron; }
+
+    virtual bool maEfekt(const string& efekt) const {
+        return efektyStatusow.count(efekt) > 0;
+    }
 
 private:
     bool powalony = false;
